@@ -6,8 +6,9 @@ const inquirer = require('inquirer');
 const chalk = require('chalk');
 const questions = require('../lib/questions');
 const backupContentfulSpace = require('../lib/backup.js');
+const migrateContentfulSpace = require('../lib/backup.js');
 
-const attemptBackup = async input => {
+const attemptBackupSpace = async input => {
   try {
     const d = new Date();
     const now = d.toISOString();
@@ -43,7 +44,7 @@ const getBackupFile = async newBackpFile => {
       while (!input.allConfirmed) {
         input = await inquirer.prompt(questions.backup);
       }
-      return attemptBackup(input);
+      return attemptBackupSpace(input);
     }
 
     const input = await inquirer.prompt(questions.noBackup);
@@ -53,10 +54,42 @@ const getBackupFile = async newBackpFile => {
   }
 };
 
+const attemptMigrateSpaces = async (shouldMigrate, backupFile) => {
+  try {
+    if (shouldMigrate) {
+      let input = await inquirer.prompt(questions.migrateConfig);
+      while (!input.allConfirmed) {
+        input = await inquirer.prompt(questions.migrateConfig);
+      }
+      const config = {
+        spaceId: input.spaceId,
+        managementToken: input.managementToken,
+        environmentId: input.environmentId,
+        contentFile: backupFile,
+        contentModelOnly: input.contentModelOnly,
+        skipContentModel: input.skipContentModel || false,
+        skipLocales: input.skipLocales,
+        skipContentPublishing: input.skipContentPublishing,
+      };
+
+      await migrateContentfulSpace(config);
+    }
+    return true;
+  } catch (err) {
+    throw new Error(err);
+  }
+};
+
 const init = async () => {
   try {
-    const input = await inquirer.prompt(questions.start);
-    const backupFile = await getBackupFile(input.newBackup);
+    console.info('\n', chalk.blue('info'), 'Backup configuration', '\n');
+    const backup = await inquirer.prompt(questions.start);
+    const backupFile = await getBackupFile(backup.newBackup);
+    console.info('\n', chalk.blue('info'), 'Migrations configuration', '\n');
+    const migrate = await inquirer.prompt(questions.migrate);
+    await attemptMigrateSpaces(migrate.import, backupFile);
+    console.info('\n', chalk.green.bold('success'), 'Process complete!', '\n');
+    process.exit(0);
   } catch (err) {
     console.error(chalk.red('error'), err);
     process.exit(1);
