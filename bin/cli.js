@@ -4,9 +4,10 @@ const path = require('path');
 const fs = require('fs-extra');
 const inquirer = require('inquirer');
 const chalk = require('chalk');
+const program = require('commander');
 const questions = require('../lib/questions');
 const backupContentfulSpace = require('../lib/backup.js');
-const migrateContentfulSpace = require('../lib/backup.js');
+const migrateContentfulSpace = require('../lib/migrate.js');
 
 const attemptBackupSpace = async input => {
   try {
@@ -19,9 +20,10 @@ const attemptBackupSpace = async input => {
       environmentId: input.environmentId,
       exportDir: path.resolve('./contentful-backups'),
       contentFile: `${input.spaceId}-${input.environmentId}-${now}.json`,
-      skipContent: true,
-      skipRoles: true,
-      skipWebhooks: true,
+      skipContent: input.skipContent,
+      skipRoles: input.skipRoles,
+      skipWebhooks: input.skipWebhooks,
+      includeDrafts: true,
     };
     fs.ensureDirSync(config.exportDir);
     await backupContentfulSpace(config);
@@ -72,6 +74,8 @@ const attemptMigrateSpaces = async (shouldMigrate, backupFile) => {
         skipContentPublishing: input.skipContentPublishing,
       };
 
+      console.info(chalk.blue('info'), `Migrating from ${backupFile}`);
+
       await migrateContentfulSpace(config);
     }
     return true;
@@ -82,9 +86,43 @@ const attemptMigrateSpaces = async (shouldMigrate, backupFile) => {
 
 const init = async () => {
   try {
-    console.info('\n', chalk.blue('info'), 'Backup configuration', '\n');
-    const backup = await inquirer.prompt(questions.start);
-    const backupFile = await getBackupFile(backup.newBackup);
+    program
+      .option('-t, --token <token>', 'Contentful management token')
+      .option(
+        '-o, --origin-spaceid <id>',
+        'SpaceID for the origin environment to backup'
+      )
+      .option(
+        '-d, --dest-spaceid <id>',
+        'SpaceID for the destination environment to migrate to'
+      )
+      .option('-f --file <file>', 'Existing backup to use for a new import');
+
+    program.parse(process.argv);
+
+    if (program.token) {
+      questions.backup[1].default = program.token;
+      questions.migrateConfig[1].default = program.token;
+    }
+
+    if (program.originSpaceid) {
+      questions.backup[0].default = program.originSpaceid;
+    }
+
+    if (program.destSpaceid) {
+      questions.migrateConfig[0].default = program.destSpaceid;
+    }
+
+    if (!program.file) {
+      console.info('\n', chalk.blue('info'), 'Backup configuration', '\n');
+    }
+    const backup = program.file
+      ? false
+      : await inquirer.prompt(questions.start);
+    const backupFile = program.file
+      ? program.file
+      : await getBackupFile(backup.newBackup);
+
     console.info('\n', chalk.blue('info'), 'Migrations configuration', '\n');
     const migrate = await inquirer.prompt(questions.migrate);
     await attemptMigrateSpaces(migrate.import, backupFile);
