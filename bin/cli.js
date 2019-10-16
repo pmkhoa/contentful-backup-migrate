@@ -87,7 +87,10 @@ const attemptMigrateSpaces = async (shouldMigrate, backupFile) => {
 const init = async () => {
   try {
     program
-      .option('-t, --token <token>', 'Contentful management token')
+      .option(
+        '-t, --token <token>',
+        'The Contentful Management Token. Will be pre-filled for both backup and migrate steps'
+      )
       .option(
         '-o, --origin-spaceid <id>',
         'SpaceID for the origin environment to backup'
