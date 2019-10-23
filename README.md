@@ -4,15 +4,11 @@ This is an interactive CLI tool that helps to create a backup of a Contentful Sp
 
 ## Installation
 
-_npm_
-`npm install -g git@gitlab.com:akqa-amsterdam/contentful-backup-migrate.git`
-
-_yarn_
-`yarn global git@gitlab.com:akqa-amsterdam/contentful-backup-migrate.git`
+Since this repository is private, you can't install it directly through NPM, so just clone it to be able to use it.
 
 ## Usage
 
-`contentful-backup-migrate <options>`
+`node bin/cli.js <options>`
 
 ## Requested inputs
 
