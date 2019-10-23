@@ -49,4 +49,4 @@ The following inputs will be requested
 | -t, --token <token>       | The contentful Management Token. Will be pre-filled for both backup and migrate steps |
 | -o, --origin-spaceid <id> | SpaceID for the origin environment to backup                                          |
 | -d, --dest-spaceid <id>   | SpaceID for the destination environment to migrate to                                 |
-| -f --file <file>          | Existing backup to use for a new migration. Will be pre-filled in the input questions |
+| -f --file <file>          | Existing backup to use for a new migration. Will be pre-filled in the input questions. If provided, the backup step is skipped. |
