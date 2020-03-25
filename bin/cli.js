@@ -9,7 +9,7 @@ const questions = require('../lib/questions');
 const backupContentfulSpace = require('../lib/backup.js');
 const migrateContentfulSpace = require('../lib/migrate.js');
 
-const attemptBackupSpace = async input => {
+const attemptBackupSpace = async (input, contentType) => {
   try {
     const d = new Date();
     const now = d.toISOString();
@@ -25,6 +25,11 @@ const attemptBackupSpace = async input => {
       skipWebhooks: input.skipWebhooks,
       includeDrafts: true,
     };
+
+    if (contentType) {
+      config.queryEntries = [`content_type=${contentType}`];
+    }
+
     fs.ensureDirSync(config.exportDir);
     await backupContentfulSpace(config);
     const backupLocation = path.resolve(config.exportDir, config.contentFile);
@@ -39,14 +44,14 @@ const attemptBackupSpace = async input => {
   }
 };
 
-const getBackupFile = async newBackpFile => {
+const getBackupFile = async (newBackpFile, contentType) => {
   try {
     if (newBackpFile) {
       let input = await inquirer.prompt(questions.backup);
       while (!input.allConfirmed) {
         input = await inquirer.prompt(questions.backup);
       }
-      return attemptBackupSpace(input);
+      return attemptBackupSpace(input, contentType);
     }
 
     const input = await inquirer.prompt(questions.noBackup);
@@ -99,6 +104,10 @@ const init = async () => {
         '-d, --dest-spaceid <id>',
         'SpaceID for the destination environment to migrate to'
       )
+      .option(
+        '-c, --content-type <id>',
+        'Content type to backup. If ignored, all will be backed up'
+      )
       .option('-f --file <file>', 'Existing backup to use for a new import');
 
     program.parse(process.argv);
@@ -119,12 +128,13 @@ const init = async () => {
     if (!program.file) {
       console.info('\n', chalk.blue('info'), 'Backup configuration', '\n');
     }
+
     const backup = program.file
       ? false
       : await inquirer.prompt(questions.start);
     const backupFile = program.file
       ? program.file
-      : await getBackupFile(backup.newBackup);
+      : await getBackupFile(backup.newBackup, program.contentType);
 
     console.info('\n', chalk.blue('info'), 'Migrations configuration', '\n');
     const migrate = await inquirer.prompt(questions.migrate);
