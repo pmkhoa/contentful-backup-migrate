@@ -22,7 +22,7 @@
     "contentful-export": "^7.6.0",
     "contentful-import": "^7.9.6",
     "fs-extra": "^8.1.0",
-    "inquirer": "^7.0.0"
+    "inquirer": "^7.3.3"
   },
   "husky": {
     "hooks": {
