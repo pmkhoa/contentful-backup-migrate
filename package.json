@@ -19,8 +19,8 @@
   "dependencies": {
     "chalk": "^4.1.0",
     "commander": "^3.0.1",
-    "contentful-export": "^7.6.0",
-    "contentful-import": "^7.9.6",
+    "contentful-export": "^7.13.25",
+    "contentful-import": "^8.2.16",
     "fs-extra": "^8.1.0",
     "inquirer": "^7.3.3"
   },
