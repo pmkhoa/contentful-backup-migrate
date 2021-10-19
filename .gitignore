@@ -68,3 +68,4 @@ yarn-error.log
 .yarn-integrity
 
 contentful-backups
+contentful-import-error-log*
