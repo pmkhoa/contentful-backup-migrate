@@ -8,6 +8,7 @@ const program = require('commander');
 const questions = require('../lib/questions');
 const backupContentfulSpace = require('../lib/backup.js');
 const migrateContentfulSpace = require('../lib/migrate.js');
+const buildPrefixedFile = require('../lib/mutateId');
 
 const attemptBackupSpace = async (input, contentType) => {
   try {
@@ -38,6 +39,15 @@ const attemptBackupSpace = async (input, contentType) => {
       chalk.blue('info'),
       `Backup created at ${backupLocation}`
     );
+
+    if (input.entryPrefix) {
+      console.info(
+        '\n',
+        chalk.blue('info'),
+        `Creating file with entry prefixes`
+      );
+      await buildPrefixedFile(input.entryPrefix, backupLocation);
+    }
     return backupLocation;
   } catch (err) {
     throw new Error(err);
@@ -105,6 +115,10 @@ const init = async () => {
         'SpaceID for the destination environment to migrate to'
       )
       .option(
+        '-p, --prefix-id <id>',
+        'Creates a second export file with updated IDs for entries and assets using the value passed as the prefix'
+      )
+      .option(
         '-c, --content-type <id>',
         'Content type to backup. If ignored, all will be backed up'
       )
@@ -119,6 +133,10 @@ const init = async () => {
 
     if (program.originSpaceid) {
       questions.backup[0].default = program.originSpaceid;
+    }
+
+    if (program.prefixId) {
+      questions.backup[3].default = program.prefixId;
     }
 
     if (program.destSpaceid) {
